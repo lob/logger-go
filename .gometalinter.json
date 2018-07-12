@@ -1,0 +1,10 @@
+{
+  "Enable": [
+    "golint",
+    "deadcode",
+    "varcheck",
+    "unconvert",
+    "unused",
+    "staticcheck"
+  ]
+}
