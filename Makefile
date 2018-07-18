@@ -29,7 +29,7 @@ release: clean deps lint build test ## Runs lint -> build -> test
 test: ## Runs all the tests and outputs the coverage report
 	@echo "---> Testing..."
 	@mkdir -p build && \
-	 go test -cover -covermode=atomic -coverprofile=$(COVERAGE_PROFILE) -v -timeout=30s $(GOPACKAGES) && \
+	 RELEASE=test12345 go test -cover -covermode=atomic -coverprofile=$(COVERAGE_PROFILE) -v -timeout=30s $(GOPACKAGES) && \
 	 go tool cover -html=build/coverage.out -o build/coverage.html
 
 .PHONY: enforce ## Enforces code coverage
