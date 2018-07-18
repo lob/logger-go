@@ -17,7 +17,7 @@ func testGlobalLogger(t *testing.T, infoLevel string, infoMsg string) {
 	}
 	os.Stdout = w
 
-	LOGGER = New()
+	defaultLogger = New()
 	rootData := Data{"r1": "test", "r2": "moreTest"}
 	Root(rootData)
 
@@ -31,7 +31,7 @@ func testGlobalLogger(t *testing.T, infoLevel string, infoMsg string) {
 		Debug(infoMsg, d1, d2, d3, d4)
 	case "fatal":
 		Fatal(infoMsg, d1, d2, d3, d4)
-	default:
+	case "info":
 		Info(infoMsg, d1, d2, d3, d4)
 	}
 

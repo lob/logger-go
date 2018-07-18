@@ -17,12 +17,15 @@ type Logger struct {
 	root []Data
 }
 
+func init() {
+	zerolog.TimestampFieldName = "timestamp"
+}
+
 // New prepares and creates a new Logger
 func New() Logger {
 	host, _ := os.Hostname()
 	release := os.Getenv("RELEASE")
 
-	zerolog.TimestampFieldName = "timestamp"
 	zl := zerolog.New(os.Stdout).With().Timestamp().Str("host", host)
 
 	if release != "" {
@@ -106,5 +109,6 @@ func (log Logger) log(evt *zerolog.Event, message string, fields ...Data) {
 	if hasData {
 		evt = evt.Dict("data", data)
 	}
+
 	evt.Int64("nanoseconds", zerolog.TimestampFunc().UnixNano()).Msg(message)
 }

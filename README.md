@@ -29,16 +29,16 @@ logger.Info("Hello, world!")
 // Outputs: {"level":"info","host":"HOSTNAME","release":"test12345","nanoseconds":1531944626095993849,"timestamp":"2018-07-18T13:10:26-07:00","message":"Hello, world!"}
 ```
 
-Alternatively, you can instantiate your own logger. Every logger, including the global one, will emit logs that include the log level, hostname, and release.
+Alternatively, you can instantiate your own logger.
 
 ```go
-l1 := New().ID("test")
-l2 := l1.Data(Data{"poop": "scoop"})
+l1 := logger.New().ID("test")
+l2 := l1.Data(Data{"test": "data"})
 
 l1.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 l2.Info("hi")
-// Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","data":{"poop":"scoop"},"nanoseconds":1531945897647593709,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
+// Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","data":{"test":"data"},"nanoseconds":1531945897647593709,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 ```
 
 ## Development

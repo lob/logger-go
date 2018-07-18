@@ -75,6 +75,7 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	os.Exit(code)
 }
+
 func TestLogs(t *testing.T) {
 	testLog(t, "info", "info test")
 	testLog(t, "error", "error test")

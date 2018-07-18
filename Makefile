@@ -23,7 +23,7 @@ deps: ## Ensures all Go dependencies are in sync
 	@dep ensure && echo "Successful!"
 
 .PHONY: release
-release: clean deps lint build test ## Runs lint -> build -> test
+release: clean deps lint build test ## Runs clean -> deps -> lint -> build -> test
 
 .PHONY: test
 test: ## Runs all the tests and outputs the coverage report
