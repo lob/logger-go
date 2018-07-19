@@ -12,18 +12,13 @@ setup: ## Installs all development dependencies
 	@echo "---> Setting up..."
 	@go get -u $(GOTOOLS) && gometalinter --install && echo "Successful!"
 
-.PHONY: build
-build: ## Builds binary with race condition check
-	@echo "---> Building..."
-	@./scripts/build.sh && echo "Build successful!"
-
 .PHONY: deps
 deps: ## Ensures all Go dependencies are in sync
 	@echo "---> Ensuring deps are in sync..."
 	@dep ensure && echo "Successful!"
 
 .PHONY: release
-release: clean deps lint build test ## Runs clean -> deps -> lint -> build -> test
+release: clean deps lint test ## Runs clean -> deps -> lint -> test
 
 .PHONY: test
 test: ## Runs all the tests and outputs the coverage report
