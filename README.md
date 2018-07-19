@@ -25,11 +25,11 @@ Logs will always include:
 Logs will always be written to stdout. The package ships with a global logger so you can easily emit logs without having to instantiate a logger.
 
 ```go
-logger.Info("Hello, world!")
-// Outputs: {"level":"info","host":"HOSTNAME","release":"test12345","nanoseconds":1531944626095993849,"timestamp":"2018-07-18T13:10:26-07:00","message":"Hello, world!"}
+logger.Info("Hello, world!", map[string]interface{}{"fun": "things"})
+// Outputs: {"level":"info","host":"Kyle.local","release":"test12345","data":{"fun":"things"},"nanoseconds":1532024420744842400,"timestamp":"2018-07-19T11:20:20-07:00","message":"Hello, world!"}
 ```
 
-Alternatively, you can instantiate your own logger.
+Alternatively, you can instantiate your own logger. This is useful if you want to attach additional data or top-level information to your logger, which will force all logs emitted by that logger to include that info.
 
 ```go
 l1 := logger.New().ID("test")

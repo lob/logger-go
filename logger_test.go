@@ -15,6 +15,7 @@ func testLog(t *testing.T, infoLevel string, infoMsg string) {
 	data, rootData := map[string]interface{}{"data": "test"}, map[string]interface{}{"r1": "test", "r2": "moreTest"}
 
 	origStdout := os.Stdout
+	defer func() { os.Stdout = origStdout }()
 	r, w, err := os.Pipe()
 	if err != nil {
 		t.Fatalf("unexpected error when creating a pipe: %s", err)
@@ -28,6 +29,14 @@ func testLog(t *testing.T, infoLevel string, infoMsg string) {
 		map[string]interface{}{"2": 2},
 		map[string]interface{}{"3": []int{3, 4, 5}},
 		map[string]interface{}{"4": map[string]interface{}{"5": 6.5}}
+
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+
 	switch infoLevel {
 	case "error":
 		log.Error(infoMsg, d1, d2, d3, d4)
@@ -41,19 +50,9 @@ func testLog(t *testing.T, infoLevel string, infoMsg string) {
 		log.Info(infoMsg, d1, d2, d3, d4)
 	}
 
-	outC := make(chan string)
-
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, r)
-		outC <- buf.String()
-	}()
-
 	if err = w.Close(); err != nil {
 		t.Fatalf("unexpected error closing write pipe: %s", err)
 	}
-
-	os.Stdout = origStdout
 
 	logLine := <-outC
 

@@ -18,7 +18,7 @@ func init() {
 	zerolog.TimestampFieldName = "timestamp"
 }
 
-// New prepares and creates a new Logger
+// New prepares and creates a new Logger instance
 func New() Logger {
 	host, _ := os.Hostname()
 	release := os.Getenv("RELEASE")
@@ -36,20 +36,20 @@ func New() Logger {
 	}
 }
 
-// ID sets the ID associated with the log
+// ID returns a new Logger with the ID set to id
 func (log Logger) ID(id string) Logger {
 	log.id = id
 	return log
 }
 
-// Data adds a map to the list of data associated with the log
+// Data returns a new logger with the new data appended to the old list of data
 func (log Logger) Data(data map[string]interface{}) Logger {
 	log.data = append(log.data, data)
 	return log
 }
 
-// Root adds a map to the list of data that will be displayed at the top level
-// of the log
+// Root returns a new logger with the root info appended to the old list of root
+// info. This root info will be displayed at the top level of the log.
 func (log Logger) Root(root map[string]interface{}) Logger {
 	log.root = append(log.root, root)
 	return log
