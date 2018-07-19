@@ -8,7 +8,7 @@ Include the logger-go package in your import.
 
 ```go
 import (
-    logger "github.com/lob/logger-go"
+    "github.com/lob/logger-go"
 )
 ```
 
