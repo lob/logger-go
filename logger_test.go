@@ -12,7 +12,7 @@ import (
 func testLog(t *testing.T, infoLevel string, infoMsg string) {
 	id := "testId"
 
-	data, rootData := Data{"data": "test"}, Data{"r1": "test", "r2": "moreTest"}
+	data, rootData := map[string]interface{}{"data": "test"}, map[string]interface{}{"r1": "test", "r2": "moreTest"}
 
 	origStdout := os.Stdout
 	r, w, err := os.Pipe()
@@ -23,7 +23,11 @@ func testLog(t *testing.T, infoLevel string, infoMsg string) {
 
 	log := New().ID(id).Data(data).Root(rootData)
 
-	d1, d2, d3, d4 := Data{"1": "1"}, Data{"2": 2}, Data{"3": []int{3, 4, 5}}, Data{"4": Data{"5": 6.5}}
+	d1, d2, d3, d4 :=
+		map[string]interface{}{"1": "1"},
+		map[string]interface{}{"2": 2},
+		map[string]interface{}{"3": []int{3, 4, 5}},
+		map[string]interface{}{"4": map[string]interface{}{"5": 6.5}}
 	switch infoLevel {
 	case "error":
 		log.Error(infoMsg, d1, d2, d3, d4)
