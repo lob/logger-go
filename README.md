@@ -33,13 +33,47 @@ Alternatively, you can instantiate your own logger. This is useful if you want t
 
 ```go
 l1 := logger.New().ID("test")
-l2 := l1.Data(Data{"test": "data"})
+l2 := l1.Data(map[string]interface{}{"test": "data"})
 
 l1.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 l2.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","data":{"test":"data"},"nanoseconds":1531945897647593709,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 ```
+
+The logger supports five levels of logging.
+
+### Info
+
+```go
+logger.Info("Hello, world!")
+```
+
+### Error
+
+```go
+logger.Error("Hello, world!")
+```
+
+### Warn
+
+```go
+logger.Warn("Hello, world!")
+```
+
+### Debug
+
+```go
+logger.Debug("Hello, world!")
+```
+
+### Fatal
+
+```go
+logger.Fatal("Hello, world!")
+```
+
+We currently do not support trace-level logging, since zerolog, the underlying logging library, does not support trace (or custom level logging).
 
 ## Development
 
