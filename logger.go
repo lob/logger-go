@@ -10,8 +10,8 @@ import (
 type Logger struct {
 	zl   zerolog.Logger
 	id   string
-	data []map[string]interface{}
-	root []map[string]interface{}
+	data map[string]interface{}
+	root map[string]interface{}
 }
 
 func init() {
@@ -31,8 +31,8 @@ func New() Logger {
 
 	return Logger{
 		zl:   zl.Logger(),
-		data: []map[string]interface{}{},
-		root: []map[string]interface{}{},
+		data: map[string]interface{}{},
+		root: map[string]interface{}{},
 	}
 }
 
@@ -44,14 +44,28 @@ func (log Logger) ID(id string) Logger {
 
 // Data returns a new logger with the new data appended to the old list of data
 func (log Logger) Data(data map[string]interface{}) Logger {
-	log.data = append(log.data, data)
+	newData := make(map[string]interface{})
+	for k, v := range log.data {
+		newData[k] = v
+	}
+	for k, v := range data {
+		newData[k] = v
+	}
+	log.data = newData
 	return log
 }
 
 // Root returns a new logger with the root info appended to the old list of root
 // info. This root info will be displayed at the top level of the log.
 func (log Logger) Root(root map[string]interface{}) Logger {
-	log.root = append(log.root, root)
+	newRoot := make(map[string]interface{})
+	for k, v := range log.root {
+		newRoot[k] = v
+	}
+	for k, v := range root {
+		newRoot[k] = v
+	}
+	log.root = newRoot
 	return log
 }
 
@@ -85,19 +99,19 @@ func (log Logger) Fatal(message string, fields ...map[string]interface{}) {
 
 func (log Logger) log(evt *zerolog.Event, message string, fields ...map[string]interface{}) {
 	hasData := false
-	data := zerolog.Dict()
-	for _, field := range append(log.data, fields...) {
+	if len(log.data) != 0 {
+		hasData = true
+	}
+
+	data := zerolog.Dict().Fields(log.data)
+	for _, field := range fields {
 		if len(field) != 0 {
 			hasData = true
 			data = data.Fields(field)
 		}
 	}
 
-	for _, field := range log.root {
-		if len(field) != 0 {
-			evt = evt.Fields(field)
-		}
-	}
+	evt.Fields(log.root)
 
 	if log.id != "" {
 		evt = evt.Str("id", log.id)

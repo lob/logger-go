@@ -6,7 +6,7 @@ var defaultLogger = New()
 // Root adds a map to the list of data that will be displayed at the top level
 // of the log
 func Root(root map[string]interface{}) {
-	defaultLogger.root = append(defaultLogger.root, root)
+	defaultLogger = defaultLogger.Root(root)
 }
 
 // Info writes a info-level log with a message and any additional data provided

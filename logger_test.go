@@ -32,7 +32,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	} else {
 		id = "testId"
 		data = map[string]interface{}{"data": "test"}
-		log = New().ID(id).Data(data).Root(rootData)
+		log = New().ID(id).Data(data).Data(data).Root(rootData).Root(rootData)
 	}
 
 	d1, d2, d3, d4 :=
