@@ -39,6 +39,11 @@ l1.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 l2.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","data":{"test":"data"},"nanoseconds":1531945897647593709,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
+
+// If Data or Root are empty, they will not show up in the logs.
+l1 = l1.Data(map[string]interface{}{})
+l1.Info("hi")
+// Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 ```
 
 The logger supports five levels of logging.
