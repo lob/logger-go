@@ -27,9 +27,6 @@ jobs:
           paths:
             - /go/src/github.com/lob/logger-go/vendor
       - run:
-          name: Clean build
-          command: make clean
-      - run:
           name: Run linter
           command: make lint
       - run:
