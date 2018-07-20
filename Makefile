@@ -17,9 +17,6 @@ deps: ## Ensures all Go dependencies are in sync
 	@echo "---> Ensuring deps are in sync..."
 	@dep ensure && echo "Successful!"
 
-.PHONY: release
-release: clean deps lint test ## Runs clean -> deps -> lint -> test
-
 .PHONY: test
 test: ## Runs all the tests and outputs the coverage report
 	@echo "---> Testing..."
@@ -47,4 +44,4 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 ## default command
-.DEFAULT_GOAL := release
+.DEFAULT_GOAL := help

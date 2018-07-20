@@ -19,14 +19,22 @@ jobs:
           key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "Gopkg.lock" }}
       - run:
           name: Install workspace dependencies
-          command: make setup
+          command: |
+            make setup
+            make deps
       - save_cache:
           key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "Gopkg.lock" }}
           paths:
             - /go/src/github.com/lob/logger-go/vendor
       - run:
-          name: Run release
-          command: make release
+          name: Clean build
+          command: make clean
+      - run:
+          name: Run linter
+          command: make lint
+      - run:
+          name: Run tests
+          command: make test
       - run:
           name: Enforce coverage
           command: make enforce

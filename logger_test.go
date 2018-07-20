@@ -28,7 +28,6 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 
 	if global {
 		defaultLogger = New()
-		Root(rootData)
 	} else {
 		id = "testId"
 		data = map[string]interface{}{"data": "test"}
@@ -92,8 +91,6 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 			t.Error("Nanoseconds is missing")
 		} else if !strings.Contains(logLine, `"timestamp":`) {
 			t.Error("Timestamp is missing")
-		} else if !strings.Contains(logLine, `"r1":"test"`) || !strings.Contains(logLine, `"r2":"moreTest"`) {
-			t.Error("Root data is incorrect")
 		} else if !strings.Contains(logLine, `"data":{"1":"1","2":2,"3":[3,4,5],"4":{"5":6.5}}`) {
 			t.Error("Data is incorrect")
 		}
