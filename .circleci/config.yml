@@ -18,8 +18,10 @@ jobs:
       - restore_cache:
           key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "Gopkg.lock" }}
       - run:
-          name: Install dependencies
-          command: make dev-setup
+          name: Install workspace dependencies
+          command: |
+            make setup
+            make deps
       - save_cache:
           key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "Gopkg.lock" }}
           paths:
@@ -28,7 +30,10 @@ jobs:
           name: Run linter
           command: make lint
       - run:
-          name: Run tests and enforce coverage
+          name: Run tests
+          command: make test
+      - run:
+          name: Enforce coverage
           command: make enforce
       - store_artifacts:
           path: build
