@@ -7,13 +7,15 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	var id string
-	var data map[string]interface{}
+	var data Data
 	var log Logger
-	rootData := map[string]interface{}{"r1": "test", "r2": "moreTest"}
+	rootData := Data{"r1": "test", "r2": "moreTest"}
 
 	origStdout := os.Stdout
 	defer func() {
@@ -30,15 +32,21 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 		defaultLogger = New()
 	} else {
 		id = "testId"
-		data = map[string]interface{}{"data": "test"}
-		log = New().ID(id).Data(data).Data(data).Root(rootData).Root(rootData)
+		data = Data{"data": "test"}
+		var e error
+		if infoLevel == "error" {
+			e = errors.New("pkg error")
+		} else {
+			e = fmt.Errorf("runtime error")
+		}
+		log = New().ID(id).Err(e).Data(data).Data(data).Root(rootData).Root(rootData)
 	}
 
 	d1, d2, d3, d4 :=
-		map[string]interface{}{"1": "1"},
-		map[string]interface{}{"2": 2},
-		map[string]interface{}{"3": []int{3, 4, 5}},
-		map[string]interface{}{"4": map[string]interface{}{"5": 6.5}}
+		Data{"1": "1"},
+		Data{"2": 2},
+		Data{"3": []int{3, 4, 5}},
+		Data{"4": Data{"5": 6.5}}
 
 	outC := make(chan string)
 	go func() {
@@ -97,6 +105,8 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	} else {
 		if !strings.Contains(logLine, fmt.Sprintf(`"id":"%s"`, id)) {
 			t.Error("ID is incorrect")
+		} else if !strings.Contains(logLine, `"error":{`) {
+			t.Error("Error is incorrect")
 		} else if !strings.Contains(logLine, fmt.Sprintf(`"level":"%s"`, infoLevel)) {
 			t.Error("Log level is incorrect")
 		} else if !strings.Contains(logLine, `"host":`) {
@@ -113,11 +123,6 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 			t.Error("Data is incorrect")
 		}
 	}
-}
-
-func TestMain(m *testing.M) {
-	code := m.Run()
-	os.Exit(code)
 }
 
 func TestLogs(t *testing.T) {

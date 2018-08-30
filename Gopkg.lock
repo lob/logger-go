@@ -2,20 +2,24 @@
 
 
 [[projects]]
-  digest = "1:66d0104002fa733b3ade80ec5d62bcd25cbcbcf72f56ef078de23efa288eadfd"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/rs/zerolog"
   packages = [
     ".",
     "internal/cbor",
-    "internal/json",
+    "internal/json"
   ]
-  pruneopts = "UT"
   revision = "77db4b4f350e31be66a57c332acb7721cf9ff9bb"
   version = "v1.8.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/rs/zerolog"]
+  inputs-digest = "d2c3be6b5250e0ee8e05b111598f3211a0b86382e8cc436181cc0af1203b96e5"
   solver-name = "gps-cdcl"
   solver-version = 1
