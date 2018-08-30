@@ -144,12 +144,13 @@ func (log Logger) log(evt *zerolog.Event, message string, fields ...Data) {
 	}
 
 	if log.err != nil {
-		stack := make([]byte, stackSize)
+		var stack []byte
 		// support pkg/errors stackTracer interface
 		if err, ok := log.err.(stackTracer); ok {
 			st := err.StackTrace()
 			stack = []byte(fmt.Sprintf("%+v", st))
 		} else {
+			stack = make([]byte, stackSize)
 			n := runtime.Stack(stack, true)
 			stack = stack[:n]
 		}
