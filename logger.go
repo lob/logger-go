@@ -1,8 +1,11 @@
 package logger
 
 import (
+	"fmt"
 	"os"
+	"runtime"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 )
 
@@ -10,8 +13,15 @@ import (
 type Logger struct {
 	zl   zerolog.Logger
 	id   string
+	err  error
 	data map[string]interface{}
 	root map[string]interface{}
+}
+
+const stackSize = 4 << 10 // 4KB
+
+type stackTracer interface {
+	StackTrace() errors.StackTrace
 }
 
 func init() {
@@ -39,6 +49,12 @@ func New() Logger {
 // ID returns a new Logger with the ID set to id.
 func (log Logger) ID(id string) Logger {
 	log.id = id
+	return log
+}
+
+// Err returns a new Logger with the error set to err.
+func (log Logger) Err(err error) Logger {
+	log.err = err
 	return log
 }
 
@@ -121,6 +137,19 @@ func (log Logger) log(evt *zerolog.Event, message string, fields ...map[string]i
 
 	if hasData {
 		evt = evt.Dict("data", data)
+	}
+
+	if log.err != nil {
+		stack := make([]byte, stackSize)
+		// support pkg/errors stackTracer interface
+		if err, ok := log.err.(stackTracer); ok {
+			st := err.StackTrace()
+			stack = []byte(fmt.Sprintf("%+v", st))
+		} else {
+			_ = runtime.Stack(stack, true)
+		}
+		f := map[string]interface{}{"message": log.err, "stack": stack}
+		evt = evt.Dict("error", zerolog.Dict().Fields(f))
 	}
 
 	evt.Int64("nanoseconds", zerolog.TimestampFunc().UnixNano()).Msg(message)

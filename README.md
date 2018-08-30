@@ -44,6 +44,16 @@ l2.Info("hi")
 l1 = l1.Data(map[string]interface{}{})
 l1.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
+
+// To log errors, use Err. If it's a normal error, a runtime stack trace is logged. This provides limited context, so it's recommended to use pkg/errors instead (see below).
+err := fmt.Errorf("foo")
+l1.Err(err).Error("unknown error")
+// {"level":"error","host":"HOSTNAME","release":"RELEASE","id":"test","error":{"message":"foo","stack":"goroutine 1 [running]:\ngithub.com/lob/logger-go.Logger.log(0x111b0c0, 0xc420010440, 0x0, 0x0, 0x0, 0xc4200b8200, 0x19, 0x1f4, 0xc420010450, 0x1, ...)\n\t/go/src/github.com/lob/logger-go/logger.go:153 +0x5d2\ngithub.com/lob/logger-go.Logger.Error(0x111b0c0, 0xc420010440, 0x0, 0x0, 0x0, 0xc4200b8200, 0x19, 0x1f4, 0xc420010450, 0x1, ...)\n\t/go/src/github.com/lob/logger-go/logger.go:101 +0xce\nmain.main()\n\t/go/src/github.com/lob/logger-go/main.go:27 +0x5db\n"},"nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"unknown error"}
+
+// If the error is wrapped with pkg/errors, a better stack trace is logged. See https://godoc.org/github.com/pkg/errors#hdr-Retrieving_the_stack_trace_of_an_error_or_wrapper for more info.
+err = errors.New("bar")
+l1.Err(err).Error("unknown error")
+// {"level":"error","host":"HOSTNAME","release":"RELEASE","id":"test","error":{"message":"bar","stack":"\nmain.main\n\t/go/src/github.com/lob/logger-go/main.go:26\nruntime.main\n\t/.goenv/versions/1.10.3/src/runtime/proc.go:198\nruntime.goexit\n\t/.goenv/versions/1.10.3/src/runtime/asm_amd64.s:2361"},"nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"unknown error"}
 ```
 
 The logger supports five levels of logging.
