@@ -25,7 +25,7 @@ Logs will always include:
 Logs will always be written to stdout. The package ships with a global logger so you can easily emit logs without having to instantiate a logger.
 
 ```go
-logger.Info("Hello, world!", map[string]interface{}{"fun": "things"})
+logger.Info("Hello, world!", logger.Data{"fun": "things"})
 // Outputs: {"level":"info","host":"Kyle.local","release":"test12345","data":{"fun":"things"},"nanoseconds":1532024420744842400,"timestamp":"2018-07-19T11:20:20-07:00","message":"Hello, world!"}
 ```
 
@@ -33,7 +33,7 @@ Alternatively, you can instantiate your own logger. This is useful if you want t
 
 ```go
 l1 := logger.New().ID("test")
-l2 := l1.Data(map[string]interface{}{"test": "data"})
+l2 := l1.Data(logger.Data{"test": "data"})
 
 l1.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
@@ -41,7 +41,7 @@ l2.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","data":{"test":"data"},"nanoseconds":1531945897647593709,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 
 // If Data or Root are empty, they will not show up in the logs.
-l1 = l1.Data(map[string]interface{}{})
+l1 = l1.Data(logger.Data{})
 l1.Info("hi")
 // Outputs {"level":"info","host":"HOSTNAME","release":"RELEASE","id":"test","nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"hi"}
 

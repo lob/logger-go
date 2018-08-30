@@ -14,9 +14,13 @@ type Logger struct {
 	zl   zerolog.Logger
 	id   string
 	err  error
-	data map[string]interface{}
-	root map[string]interface{}
+	data Data
+	root Data
 }
+
+// Data is a type alias so that it's much more concise to add additional data to
+// log lines.
+type Data map[string]interface{}
 
 const stackSize = 4 << 10 // 4KB
 
@@ -41,8 +45,8 @@ func New() Logger {
 
 	return Logger{
 		zl:   zl.Logger(),
-		data: map[string]interface{}{},
-		root: map[string]interface{}{},
+		data: Data{},
+		root: Data{},
 	}
 }
 
@@ -59,8 +63,8 @@ func (log Logger) Err(err error) Logger {
 }
 
 // Data returns a new logger with the new data appended to the old list of data.
-func (log Logger) Data(data map[string]interface{}) Logger {
-	newData := map[string]interface{}{}
+func (log Logger) Data(data Data) Logger {
+	newData := Data{}
 	for k, v := range log.data {
 		newData[k] = v
 	}
@@ -73,8 +77,8 @@ func (log Logger) Data(data map[string]interface{}) Logger {
 
 // Root returns a new logger with the root info appended to the old list of root
 // info. This root info will be displayed at the top level of the log.
-func (log Logger) Root(root map[string]interface{}) Logger {
-	newRoot := map[string]interface{}{}
+func (log Logger) Root(root Data) Logger {
+	newRoot := Data{}
 	for k, v := range log.root {
 		newRoot[k] = v
 	}
@@ -87,35 +91,35 @@ func (log Logger) Root(root map[string]interface{}) Logger {
 
 // Info outputs an info-level log with a message and any additional data
 // provided.
-func (log Logger) Info(message string, fields ...map[string]interface{}) {
+func (log Logger) Info(message string, fields ...Data) {
 	log.log(log.zl.Info(), message, fields...)
 }
 
 // Error outputs an error-level log with a message and any additional data
 // provided.
-func (log Logger) Error(message string, fields ...map[string]interface{}) {
+func (log Logger) Error(message string, fields ...Data) {
 	log.log(log.zl.Error(), message, fields...)
 }
 
 // Warn outputs a warn-level log with a message and any additional data
 // provided.
-func (log Logger) Warn(message string, fields ...map[string]interface{}) {
+func (log Logger) Warn(message string, fields ...Data) {
 	log.log(log.zl.Warn(), message, fields...)
 }
 
 // Debug outputs a debug-level log with a message and any additional data
 // provided.
-func (log Logger) Debug(message string, fields ...map[string]interface{}) {
+func (log Logger) Debug(message string, fields ...Data) {
 	log.log(log.zl.Debug(), message, fields...)
 }
 
 // Fatal outputs a fatal-level log with a message and any additional data
 // provided. This will also call os.Exit(1)
-func (log Logger) Fatal(message string, fields ...map[string]interface{}) {
+func (log Logger) Fatal(message string, fields ...Data) {
 	log.log(log.zl.Fatal(), message, fields...)
 }
 
-func (log Logger) log(evt *zerolog.Event, message string, fields ...map[string]interface{}) {
+func (log Logger) log(evt *zerolog.Event, message string, fields ...Data) {
 	hasData := false
 	if len(log.data) != 0 {
 		hasData = true
@@ -146,9 +150,10 @@ func (log Logger) log(evt *zerolog.Event, message string, fields ...map[string]i
 			st := err.StackTrace()
 			stack = []byte(fmt.Sprintf("%+v", st))
 		} else {
-			_ = runtime.Stack(stack, true)
+			n := runtime.Stack(stack, true)
+			stack = stack[:n]
 		}
-		f := map[string]interface{}{"message": log.err, "stack": stack}
+		f := Data{"message": log.err, "stack": stack}
 		evt = evt.Dict("error", zerolog.Dict().Fields(f))
 	}
 

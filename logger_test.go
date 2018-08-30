@@ -13,9 +13,9 @@ import (
 
 func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	var id string
-	var data map[string]interface{}
+	var data Data
 	var log Logger
-	rootData := map[string]interface{}{"r1": "test", "r2": "moreTest"}
+	rootData := Data{"r1": "test", "r2": "moreTest"}
 
 	origStdout := os.Stdout
 	defer func() {
@@ -32,7 +32,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 		defaultLogger = New()
 	} else {
 		id = "testId"
-		data = map[string]interface{}{"data": "test"}
+		data = Data{"data": "test"}
 		var e error
 		if infoLevel == "error" {
 			e = errors.New("pkg error")
@@ -43,10 +43,10 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	}
 
 	d1, d2, d3, d4 :=
-		map[string]interface{}{"1": "1"},
-		map[string]interface{}{"2": 2},
-		map[string]interface{}{"3": []int{3, 4, 5}},
-		map[string]interface{}{"4": map[string]interface{}{"5": 6.5}}
+		Data{"1": "1"},
+		Data{"2": 2},
+		Data{"3": []int{3, 4, 5}},
+		Data{"4": Data{"5": 6.5}}
 
 	outC := make(chan string)
 	go func() {
