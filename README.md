@@ -90,6 +90,72 @@ logger.Fatal("Hello, world!")
 
 We currently do not support trace-level logging, since zerolog, the underlying logging library, does not support trace (or custom level logging).
 
+## Errors and Stack Traces
+
+In Go, the idiomatic `error` type doesn't contain any stack information by default. Since there's no mechanism to extract a stack, it's common to use [`runtime.Stack`](https://golang.org/pkg/runtime/#Stack) to generate one. The problem with that is since the stack is usually created at the point of _error handling_ and not the point of _error creation_, the stack most likely won't have the origination point of the error.
+
+Because of this, the community has created a way to maintain stack information as the error gets bubbled up while still adhering to the idiomatic `error` interface. This is with the [`github.com/pkg/errors` package](https://godoc.org/github.com/pkg/errors). It allows developers to add context and stack frames to errors that are generated throughout a codebase. By leveraging this, you can produce a much better stack trace.
+
+To demonstate the difference between these two mechanisms, here is an example:
+
+```go
+func main() {
+	log := logger.New()
+
+	nativeErr := nativeFunction1()
+	pkgErr := pkgFunction1()
+
+	log.Err(nativeErr).Error("native error")
+	log.Err(pkgErr).Error("pkg error")
+}
+
+func nativeFunction1() error {
+	return nativeFunction2() // line 21
+}
+
+func nativeFunction2() error {
+	// returns a native error
+	return fmt.Errorf("foo") // line 26
+}
+
+func pkgFunction1() error {
+	return pkgFunction2() // line 30
+}
+
+func pkgFunction2() error {
+	// returns a pkg/errors error
+	return errors.New("foo") // line 35
+}
+```
+
+This sample code produces these stack traces:
+
+```
+goroutine 1 [running]:
+github.com/lob/logger-go.Logger.log(0x111a8c0, 0xc420010440, 0x0, 0x0, 0x0, 0xc4200b8200, 0x19, 0x1f4, 0xc420010450, 0x1, ...)
+        /Users/robinjoseph/go/src/github.com/lob/logger-go/logger.go:154 +0x5ad
+github.com/lob/logger-go.Logger.Error(0x111a8c0, 0xc420010440, 0x0, 0x0, 0x0, 0xc4200b8200, 0x19, 0x1f4, 0xc420010450, 0x1, ...)
+        /Users/robinjoseph/go/src/github.com/lob/logger-go/logger.go:101 +0xce
+main.main()
+        /Users/robinjoseph/go/src/github.com/lob/logger-go/ex/main.go:16 +0x1bd
+
+
+main.pkgFunction2
+        /Users/robinjoseph/go/src/github.com/lob/logger-go/ex/main.go:35
+main.pkgFunction1
+        /Users/robinjoseph/go/src/github.com/lob/logger-go/ex/main.go:30
+main.main
+        /Users/robinjoseph/go/src/github.com/lob/logger-go/ex/main.go:14
+runtime.main
+        /Users/robinjoseph/.goenv/versions/1.10.3/src/runtime/proc.go:198
+runtime.goexit
+        /Users/robinjoseph/.goenv/versions/1.10.3/src/runtime/asm_amd64.s:2361
+```
+
+As you can see from the runtime stack (the former), it contains neither function names nor line numbers to indicate the original cause of the error. But with the `pkg/errors` stack trace (the latter), it's very clear and contains all the necessary information needed for debugging.
+
+This logging package will attempt to extract the `pkg/errors` stack trace if that information exists, but otherwise, it will provide the runtime stack. **It's because of this that we strongly recommend adding `pkg/errors` to wrap all errors in your codebase.** This will aid in the general debuggability of your applications.
+
 ## Development
 
 ```sh
