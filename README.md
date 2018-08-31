@@ -152,7 +152,7 @@ runtime.goexit
         /Users/robinjoseph/.goenv/versions/1.10.3/src/runtime/asm_amd64.s:2361
 ```
 
-As you can see from the runtime stack (the former), it doesn't contain function names nor line numbers to indicate the original cause of the error. But with the `pkg/errors` stack trace (the latter), it's very clear and contains all the necessary information needed for debugging.
+As you can see from the runtime stack (the former), it contains neither function names nor line numbers to indicate the original cause of the error. But with the `pkg/errors` stack trace (the latter), it's very clear and contains all the necessary information needed for debugging.
 
 This logging package will attempt to extract the `pkg/errors` stack trace if that information exists, but otherwise, it will provide the runtime stack. **It's because of this that we strongly recommend adding `pkg/errors` to wrap all errors in your codebase.** This will aid in the general debuggability of your applications.
 
