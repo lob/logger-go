@@ -156,6 +156,8 @@ As you can see from the runtime stack (the former), it contains neither function
 
 This logging package will attempt to extract the `pkg/errors` stack trace if that information exists, but otherwise, it will provide the runtime stack. **It's because of this that we strongly recommend adding `pkg/errors` to wrap all errors in your codebase.** This will aid in the general debuggability of your applications.
 
+For more information on how to wrap errors, like [`errors.WithStack()`](https://godoc.org/github.com/pkg/errors#WithStack), check out the [`pkg/errors` docs](https://godoc.org/github.com/pkg/errors#hdr-Adding_context_to_an_error).
+
 ## Development
 
 ```sh
