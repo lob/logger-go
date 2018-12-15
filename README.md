@@ -90,6 +90,42 @@ logger.Fatal("Hello, world!")
 
 We currently do not support trace-level logging, since zerolog, the underlying logging library, does not support trace (or custom level logging).
 
+## Echo Middleware
+
+This package also comes with middleware to be used with the
+[Echo](https://github.com/labstack/echo) web framework. To use it, you can just
+register it with `e.Use()`:
+
+```go
+e := echo.New()
+
+e.Use(logger.Middleware())
+```
+
+There are also some scenarios where you don't wany an error to be logged and
+registered with Echo. An example is for broken pipe errors. When this happens,
+the client closed the connection, so even though it manifests as a network
+error, it's not actionable for us, so we would rather ignore it. To do that, you
+can use `logger.MiddlewareOptions`.
+
+```go
+e := echo.New()
+
+e.Use(logger.Middleware(logger.MiddlewareOptions{
+	IsIgnorableError: func(err error) bool {
+		e := errors.Cause(err)
+
+		if netErr, ok := e.(*net.OpError); ok {
+			if osErr, ok := netErr.Err.(*os.SyscallError); ok {
+				return osErr.Err.Error() == syscall.EPIPE.Error() || osErr.Err.Error() == syscall.ECONNRESET.Error()
+			}
+		}
+
+		return false
+	},
+}))
+```
+
 ## Errors and Stack Traces
 
 In Go, the idiomatic `error` type doesn't contain any stack information by default. Since there's no mechanism to extract a stack, it's common to use [`runtime.Stack`](https://golang.org/pkg/runtime/#Stack) to generate one. The problem with that is since the stack is usually created at the point of _error handling_ and not the point of _error creation_, the stack most likely won't have the origination point of the error.
