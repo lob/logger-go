@@ -106,12 +106,12 @@ There are also some scenarios where you don't wany an error to be logged and
 registered with Echo. An example is for broken pipe errors. When this happens,
 the client closed the connection, so even though it manifests as a network
 error, it's not actionable for us, so we would rather ignore it. To do that, you
-can use `logger.MiddlewareOptions`.
+can use `logger.MiddlewareWithConfig()` and `logger.MiddlewareConfig`.
 
 ```go
 e := echo.New()
 
-e.Use(logger.Middleware(logger.MiddlewareOptions{
+e.Use(logger.MiddlewareWithConfig(logger.MiddlewareConfig{
 	IsIgnorableError: func(err error) bool {
 		e := errors.Cause(err)
 

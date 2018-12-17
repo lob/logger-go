@@ -9,28 +9,30 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MiddlewareOptions can be used to configure the Echo Middleware.
-type MiddlewareOptions struct {
+// MiddlewareConfig can be used to configure the Echo Middleware.
+type MiddlewareConfig struct {
 	IsIgnorableError func(error) bool
+}
+
+var defaultMiddlewareConfig = MiddlewareConfig{
+	IsIgnorableError: func(err error) bool {
+		return false
+	},
 }
 
 const echoKey = "logger"
 
 // Middleware attaches a Logger instance with a request ID onto the context. It
-// also logs every request along with metadata about the request.
-func Middleware(args ...MiddlewareOptions) func(next echo.HandlerFunc) echo.HandlerFunc {
-	var opts MiddlewareOptions
-	if len(args) > 0 {
-		opts = args[0]
-	}
+// also logs every request along with metadata about the request. To customize
+// the middleware, use MiddlewareWithConfig.
+func Middleware() func(next echo.HandlerFunc) echo.HandlerFunc {
+	return MiddlewareWithConfig(defaultMiddlewareConfig)
+}
 
-	// by default, we don't ignore any errors
-	if opts.IsIgnorableError == nil {
-		opts.IsIgnorableError = func(err error) bool {
-			return false
-		}
-	}
-
+// MiddlewareWithConfig attaches a Logger instance with a request ID onto the
+// context. It also logs every request along with metadata about the request.
+// Pass in a MiddlewareConfig to customize the behavior of the middleware.
+func MiddlewareWithConfig(opts MiddlewareConfig) func(next echo.HandlerFunc) echo.HandlerFunc {
 	l := New()
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {

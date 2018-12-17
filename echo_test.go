@@ -83,7 +83,7 @@ func TestMiddleware(t *testing.T) {
 	t.Run("ignores errors according to IsIgnorableError", func(tt *testing.T) {
 		e := echo.New()
 		out := capturer.CaptureStdout(func() {
-			e.Use(Middleware(MiddlewareOptions{
+			e.Use(MiddlewareWithConfig(MiddlewareConfig{
 				IsIgnorableError: func(err error) bool {
 					return true
 				},
