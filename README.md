@@ -213,6 +213,27 @@ make lint
 make clean
 ```
 
+## Cutting a New Release
+
+After new commits have been added, a new git tag should also be created so that
+tools like `go mod` and `dep` can utilize it for more semantic versioning.
+
+If there is a breaking change introduced in this new version, then it should be
+a major version bump. If there's no breaking changed and only new features, then
+it should be a minor version bump. And if there's no breaking changes, no new
+features, and only bug fixes, then it should be a patch version.
+
+After determining what the next version should be, make sure you're on an
+up-to-date master branch and run `make release`. **The `v` in the version tag is
+import for tools to recognize it.**
+
+```sh
+$ git checkout master
+$ git fetch
+$ git rebase
+$ make release tag=v1.0.0 # replace 1.0.0 with the next version
+```
+
 ## Help
 
 The following command generates a list of all `make` commands.
