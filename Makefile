@@ -1,5 +1,6 @@
 GOTOOLS := \
 	github.com/alecthomas/gometalinter \
+	github.com/git-chglog/git-chglog/cmd/git-chglog \
 	github.com/golang/dep/cmd/dep \
 	golang.org/x/tools/cmd/cover \
 
@@ -39,6 +40,18 @@ install: ## Installs dependencies
 lint: ## Runs all linters
 	@echo "---> Linting..."
 	gometalinter
+
+.PHONY: release
+release: ## Creates a new release with the given tag
+	@echo "---> Creating new release"
+ifndef tag
+	$(error tag must be specified)
+endif
+	git-chglog --output CHANGELOG.md --next-tag $(tag)
+	git add CHANGELOG.md
+	git commit -m $(tag)
+	git tag $(tag)
+	git push origin master --tags
 
 .PHONY: setup
 setup: ## Installs all development dependencies
