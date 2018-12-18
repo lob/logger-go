@@ -126,6 +126,25 @@ e.Use(logger.MiddlewareWithConfig(logger.MiddlewareConfig{
 }))
 ```
 
+With this middleware, not only will it create a `handled request` log line for
+every request, but it will also attach a request-specific logger to the Echo
+context. To use it, you can pull it out with `logger.FromEchoContext()`:
+
+```go
+e.GET("/", func(ctx echo.Context) error {
+        log := logger.FromEchoContext(ctx)
+
+        log.Info("in handler")
+
+        // ...
+
+        return nil
+})
+```
+
+**You should always try to use this logger instead of creating your own so that
+it contains contextual information about the request.**
+
 ## Errors and Stack Traces
 
 In Go, the idiomatic `error` type doesn't contain any stack information by default. Since there's no mechanism to extract a stack, it's common to use [`runtime.Stack`](https://golang.org/pkg/runtime/#Stack) to generate one. The problem with that is since the stack is usually created at the point of _error handling_ and not the point of _error creation_, the stack most likely won't have the origination point of the error.
