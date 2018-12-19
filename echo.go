@@ -46,7 +46,25 @@ func MiddlewareWithConfig(opts MiddlewareConfig) func(next echo.HandlerFunc) ech
 				return errors.WithStack(err)
 			}
 
-			log := l.ID(id.String())
+			// get the last entry in X-Forwarded-For header to
+			// determine client IP
+			var ipAddress string
+			if xff := c.Request().Header.Get("x-forwarded-for"); xff != "" {
+				split := strings.Split(xff, ",")
+				ipAddress = strings.TrimSpace(split[len(split)-1])
+			} else {
+				ipAddress = c.Request().RemoteAddr
+			}
+
+			log := l.ID(id.String()).Root(Data{
+				"method":     c.Request().Method,
+				"route":      c.Path(),
+				"path":       c.Request().URL.Path,
+				"ip_address": ipAddress,
+				"trace_id":   c.Request().Header.Get("x-amzn-trace-id"),
+				"referer":    c.Request().Referer(),
+				"user_agent": c.Request().UserAgent(),
+			})
 			c.Set(echoKey, log)
 
 			if err := next(c); err != nil {
@@ -60,26 +78,9 @@ func MiddlewareWithConfig(opts MiddlewareConfig) func(next echo.HandlerFunc) ech
 
 			t2 := time.Now()
 
-			// get the last entry in X-Forwarded-For header to
-			// determine client IP
-			var ipAddress string
-			if xff := c.Request().Header.Get("x-forwarded-for"); xff != "" {
-				split := strings.Split(xff, ",")
-				ipAddress = strings.TrimSpace(split[len(split)-1])
-			} else {
-				ipAddress = c.Request().RemoteAddr
-			}
-
 			log.Root(Data{
 				"status_code":   c.Response().Status,
-				"method":        c.Request().Method,
-				"path":          c.Request().URL.Path,
-				"route":         c.Path(),
 				"response_time": t2.Sub(t1).Seconds() * 1000,
-				"referer":       c.Request().Referer(),
-				"user_agent":    c.Request().UserAgent(),
-				"ip_address":    ipAddress,
-				"trace_id":      c.Request().Header.Get("x-amzn-trace-id"),
 			}).Info("handled request")
 
 			return nil
