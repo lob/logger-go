@@ -1,4 +1,12 @@
 
+<a name="v1.0.1"></a>
+## [v1.0.1](https://github.com/robinjoseph08/go-pg-migrations/compare/v1.0.0...v1.0.1) (2018-12-18)
+
+### Bug Fixes
+
+* **echo:** attach route fields to logger ([#9](https://github.com/robinjoseph08/go-pg-migrations/issues/9))
+
+
 <a name="v1.0.0"></a>
 ## v1.0.0 (2018-12-17)
 
