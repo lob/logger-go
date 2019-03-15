@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 
@@ -34,10 +35,15 @@ func init() {
 
 // New prepares and creates a new Logger instance.
 func New() Logger {
+	return NewWithWriter(os.Stdout)
+}
+
+// NewWithWriter prepares and creates a new Logger instance with a specified writer.
+func NewWithWriter(w io.Writer) Logger {
 	host, _ := os.Hostname()
 	release := os.Getenv("RELEASE")
 
-	zl := zerolog.New(os.Stdout).With().Timestamp().Str("host", host)
+	zl := zerolog.New(w).With().Timestamp().Str("host", host)
 
 	if release != "" {
 		zl = zl.Str("release", release)
