@@ -13,21 +13,60 @@ import (
 	"github.com/pkg/errors"
 )
 
-type FakeWriter struct{}
+type TestWriter struct {
+	wrote  int
+	closed bool
+}
 
-func (fl *FakeWriter) Write(b []byte) (int, error) {
+func NewTestWriter() *TestWriter {
+	return &TestWriter{
+		wrote:  0,
+		closed: false,
+	}
+}
+
+func (fl *TestWriter) Write(b []byte) (int, error) {
+	if fl.closed {
+		return 0, errors.New("can't write to a closed writer")
+	}
+
+	fl.wrote++
 	return 0, nil
 }
 
-func (fl *FakeWriter) Close() error {
+func (fl *TestWriter) Close() error {
+	fl.closed = true
 	return nil
 }
 
 func TestNewWithWriter(t *testing.T) {
-	logger := NewWithWriter(&FakeWriter{})
+	t.Run("creates a logger with a custom writer", func(t *testing.T) {
+		wp := NewTestWriter()
+		logger := NewWithWriter(wp)
 
-	assert.NotEmpty(t, logger)
-	assert.NotEmpty(t, logger.zl)
+		assert.NotEmpty(t, logger)
+		assert.NotEmpty(t, logger.zl)
+	})
+
+	t.Run("writes to the custom writer when invoked", func(t *testing.T) {
+		wp := NewTestWriter()
+		logger := NewWithWriter(wp)
+
+		logger.Info("write to writer")
+		assert.Equal(t, wp.wrote, 1)
+		assert.False(t, wp.closed)
+	})
+
+	t.Run("prohibits the logger to write to a closed writer", func(t *testing.T) {
+		wp := NewTestWriter()
+		logger := NewWithWriter(wp)
+
+		wp.Close()
+
+		logger.Info("write to writer")
+		assert.Equal(t, wp.wrote, 0)
+		assert.True(t, wp.closed)
+	})
 }
 
 func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
