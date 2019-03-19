@@ -15,16 +15,16 @@ import (
 
 type FakeWriter struct{}
 
-func (fl FakeWriter) Write(b []byte) (int, error) {
+func (fl *FakeWriter) Write(b []byte) (int, error) {
 	return 0, nil
 }
 
-func (fl FakeWriter) Close() error {
+func (fl *FakeWriter) Close() error {
 	return nil
 }
 
 func TestNewWithWriter(t *testing.T) {
-	logger := NewWithWriter(FakeWriter{})
+	logger := NewWithWriter(&FakeWriter{})
 
 	assert.NotEmpty(t, logger)
 	assert.NotEmpty(t, logger.zl)
