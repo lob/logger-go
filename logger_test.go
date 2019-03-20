@@ -8,8 +8,66 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/pkg/errors"
 )
+
+type TestWriter struct {
+	wrote  int
+	closed bool
+}
+
+func NewTestWriter() *TestWriter {
+	return &TestWriter{
+		wrote:  0,
+		closed: false,
+	}
+}
+
+func (fl *TestWriter) Write(b []byte) (int, error) {
+	if fl.closed {
+		return 0, errors.New("can't write to a closed writer")
+	}
+
+	fl.wrote++
+	return 0, nil
+}
+
+func (fl *TestWriter) Close() error {
+	fl.closed = true
+	return nil
+}
+
+func TestNewWithWriter(t *testing.T) {
+	t.Run("creates a logger with a custom writer", func(t *testing.T) {
+		wp := NewTestWriter()
+		logger := NewWithWriter(wp)
+
+		assert.NotEmpty(t, logger)
+		assert.NotEmpty(t, logger.zl)
+	})
+
+	t.Run("writes to the custom writer when invoked", func(t *testing.T) {
+		wp := NewTestWriter()
+		logger := NewWithWriter(wp)
+
+		logger.Info("write to writer")
+		assert.Equal(t, wp.wrote, 1)
+		assert.False(t, wp.closed)
+	})
+
+	t.Run("prohibits the logger to write to a closed writer", func(t *testing.T) {
+		wp := NewTestWriter()
+		logger := NewWithWriter(wp)
+
+		wp.Close()
+
+		logger.Info("write to writer")
+		assert.Equal(t, wp.wrote, 0)
+		assert.True(t, wp.closed)
+	})
+}
 
 func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	var id string

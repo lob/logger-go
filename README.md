@@ -22,7 +22,7 @@ Logs will always include:
 * timestamp
 * nanoseconds
 
-Logs will always be written to stdout. The package ships with a global logger so you can easily emit logs without having to instantiate a logger.
+Logs be written to stdout by default. The package ships with a global logger so you can easily emit logs without having to instantiate a logger. This default logger will always write to stdout.
 
 ```go
 logger.Info("Hello, world!", logger.Data{"fun": "things"})
@@ -54,6 +54,16 @@ l1.Err(err).Error("unknown error")
 err = errors.New("bar")
 l1.Err(err).Error("unknown error")
 // {"level":"error","host":"HOSTNAME","release":"RELEASE","id":"test","error":{"message":"bar","stack":"\nmain.main\n\t/go/src/github.com/lob/logger-go/main.go:26\nruntime.main\n\t/.goenv/versions/1.10.3/src/runtime/proc.go:198\nruntime.goexit\n\t/.goenv/versions/1.10.3/src/runtime/asm_amd64.s:2361"},"nanoseconds":1531945897647586415,"timestamp":"2018-07-18T13:31:37-07:00","message":"unknown error"}
+```
+
+If you want the logger to use a specific writer to pipe logs to anywhere other than stdout, please use the `NewWithWriter` method. Make sure the argument you are passing in implements the writer interface.
+```go
+type CustomWriter struct{}
+func (cw *CustomWriter) Write(b []byte) (int, error) {
+	// your custom write logic here
+}
+
+loggerWithWriter := logger.NewWithWriter(CustomWriter{})
 ```
 
 The logger supports five levels of logging.

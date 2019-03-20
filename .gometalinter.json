@@ -4,7 +4,6 @@
     "deadcode",
     "varcheck",
     "unconvert",
-    "unused",
     "staticcheck"
   ]
 }
