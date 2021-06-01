@@ -34,12 +34,12 @@ html: ## Generates an HTML coverage report
 .PHONY: install
 install: ## Installs dependencies
 	@echo "---> Installing dependencies..."
-	dep ensure
+	go mod download
 
 .PHONY: lint
 lint: ## Runs all linters
 	@echo "---> Linting..."
-	gometalinter
+	go vet ./...
 
 .PHONY: release
 release: ## Creates a new release with the given tag
@@ -53,11 +53,7 @@ endif
 	git tag $(tag)
 	git push origin master --tags
 
-.PHONY: setup
-setup: ## Installs all development dependencies
-	@echo "---> Setting up..."
-	go get -u $(GOTOOLS)
-	gometalinter --install
+setup: install
 
 .PHONY: test
 test: ## Runs all the tests and outputs the coverage report
