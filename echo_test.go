@@ -77,7 +77,7 @@ func TestMiddleware(t *testing.T) {
 		err := json.Unmarshal([]byte(out), &data)
 		require.NoError(tt, err)
 
-		assert.Equal(tt, "2.2.2.2", data["ip_address"])
+		assert.NotContains(tt, data, "ip_address")
 	})
 
 	t.Run("ignores errors according to IsIgnorableError", func(tt *testing.T) {
