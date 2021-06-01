@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.10.6
+      - image: circleci/golang:1.13.8
     working_directory: /go/src/github.com/lob/logger-go
     steps:
       - restore_cache:
@@ -16,14 +16,14 @@ jobs:
           paths:
             - /go/src/github.com/lob/logger-go/.git
       - restore_cache:
-          key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "Gopkg.lock" }}
+          key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "go.sum" }}
       - run:
           name: Install workspace dependencies
           command: |
             make setup
             make install
       - save_cache:
-          key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "Gopkg.lock" }}
+          key: vendor-v1-{{ checksum ".go-version" }}-{{ checksum "go.sum" }}
           paths:
             - /go/src/github.com/lob/logger-go/vendor
       - run:
