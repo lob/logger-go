@@ -53,7 +53,7 @@ func TestMiddleware(t *testing.T) {
 		assert.Equal(tt, http.StatusInternalServerError, rr.Code)
 	})
 
-	t.Run("pulls the IP from X-Forwarded-For", func(tt *testing.T) {
+	t.Run("does not capture IP address", func(tt *testing.T) {
 		e := echo.New()
 		out := capturer.CaptureStdout(func() {
 			e.Use(Middleware())
@@ -77,7 +77,7 @@ func TestMiddleware(t *testing.T) {
 		err := json.Unmarshal([]byte(out), &data)
 		require.NoError(tt, err)
 
-		assert.Equal(tt, "2.2.2.2", data["ip_address"])
+		assert.Equal(tt, nil, data["ip_address"])
 	})
 
 	t.Run("ignores errors according to IsIgnorableError", func(tt *testing.T) {

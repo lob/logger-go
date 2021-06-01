@@ -60,7 +60,6 @@ func MiddlewareWithConfig(opts MiddlewareConfig) func(next echo.HandlerFunc) ech
 				"method":     c.Request().Method,
 				"route":      c.Path(),
 				"path":       c.Request().URL.Path,
-				"ip_address": ipAddress,
 				"trace_id":   c.Request().Header.Get("x-amzn-trace-id"),
 				"referer":    c.Request().Referer(),
 				"user_agent": c.Request().UserAgent(),
