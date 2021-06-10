@@ -2,11 +2,14 @@ package logger
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -16,6 +19,7 @@ import (
 type TestWriter struct {
 	wrote  int
 	closed bool
+	msg    string
 }
 
 func NewTestWriter() *TestWriter {
@@ -30,6 +34,7 @@ func (fl *TestWriter) Write(b []byte) (int, error) {
 		return 0, errors.New("can't write to a closed writer")
 	}
 
+	fl.msg = string(b)
 	fl.wrote++
 	return 0, nil
 }
@@ -42,7 +47,7 @@ func (fl *TestWriter) Close() error {
 func TestNewWithWriter(t *testing.T) {
 	t.Run("creates a logger with a custom writer", func(t *testing.T) {
 		wp := NewTestWriter()
-		logger := NewWithWriter(wp)
+		logger := NewWithWriter("", wp)
 
 		assert.NotEmpty(t, logger)
 		assert.NotEmpty(t, logger.zl)
@@ -50,7 +55,7 @@ func TestNewWithWriter(t *testing.T) {
 
 	t.Run("writes to the custom writer when invoked", func(t *testing.T) {
 		wp := NewTestWriter()
-		logger := NewWithWriter(wp)
+		logger := NewWithWriter("", wp)
 
 		logger.Info("write to writer")
 		assert.Equal(t, wp.wrote, 1)
@@ -59,7 +64,7 @@ func TestNewWithWriter(t *testing.T) {
 
 	t.Run("prohibits the logger to write to a closed writer", func(t *testing.T) {
 		wp := NewTestWriter()
-		logger := NewWithWriter(wp)
+		logger := NewWithWriter("", wp)
 
 		wp.Close()
 
@@ -78,7 +83,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	origStdout := os.Stdout
 	defer func() {
 		os.Stdout = origStdout
-		defaultLogger = New()
+		defaultLogger = New("")
 	}()
 	r, w, err := os.Pipe()
 	if err != nil {
@@ -87,7 +92,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 	os.Stdout = w
 
 	if global {
-		defaultLogger = New()
+		defaultLogger = New("")
 	} else {
 		id = "testId"
 		data = Data{"data": "test"}
@@ -97,7 +102,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 		} else {
 			e = fmt.Errorf("runtime error")
 		}
-		log = New().ID(id).Err(e).Data(data).Data(data).Root(rootData).Root(rootData)
+		log = New("").ID(id).Err(e).Data(data).Data(data).Root(rootData).Root(rootData)
 	}
 
 	d1, d2, d3, d4 :=
@@ -188,4 +193,35 @@ func TestLogs(t *testing.T) {
 	testLogger(t, "error", "error test", false)
 	testLogger(t, "debug", "debug test", false)
 	testLogger(t, "warn", "warn test", false)
+}
+
+func TestLoggerFields(t *testing.T) {
+	t.Run("test that fields are populated correctly", func(t *testing.T) {
+		expectedHostname, _ := os.Hostname()
+		os.Setenv("RELEASE", "mycoolrelease")
+		expectedLog := map[string]string{
+			"host":        expectedHostname,
+			"level":       "info",
+			"message":     "log msg1",
+			"nanoseconds": "",
+			"release":     "mycoolrelease",
+			"service":     "asdf",
+			"id":          "myID",
+		}
+
+		tw := NewTestWriter()
+		l := NewWithWriter("asdf", tw, WithField("field1", "value1")).ID("myID")
+		l.Info("log msg1")
+
+		res := make(map[string]string)
+		json.Unmarshal([]byte(tw.msg), &res)
+
+		// test that timestamp is in appropriate format
+		_, err := time.Parse(time.RFC3339, res["timestamp"])
+		assert.NoError(t, err)
+		// then delete it from the map to test the rest a lot easier
+		delete(res, "timestamp")
+		// and finally test the map is what we expected
+		assert.True(t, reflect.DeepEqual(expectedLog, res))
+	})
 }

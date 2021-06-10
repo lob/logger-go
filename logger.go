@@ -29,24 +29,35 @@ type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
 
+type Option func(*zerolog.Context)
+
 func init() {
 	zerolog.TimestampFieldName = "timestamp"
 }
 
+func WithField(key, value string) Option {
+	return func(c *zerolog.Context) {
+		c.Str(key, value)
+	}
+}
+
 // New prepares and creates a new Logger instance.
-func New() Logger {
-	return NewWithWriter(os.Stdout)
+func New(serviceName string, options ...Option) Logger {
+	return NewWithWriter(serviceName, os.Stdout, options...)
 }
 
 // NewWithWriter prepares and creates a new Logger instance with a specified writer.
-func NewWithWriter(w io.Writer) Logger {
+func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	host, _ := os.Hostname()
-	release := os.Getenv("RELEASE")
+	if serviceName == "" {
+		serviceName = os.Getenv("SERVICE_NAME")
+	}
 
-	zl := zerolog.New(w).With().Timestamp().Str("host", host)
+	zl := zerolog.New(w).With().Timestamp()
+	zl = zl.Str("host", host).Str("release", os.Getenv("RELEASE")).Str("service", serviceName)
 
-	if release != "" {
-		zl = zl.Str("release", release)
+	for _, o := range options {
+		o(&zl)
 	}
 
 	return Logger{

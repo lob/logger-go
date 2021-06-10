@@ -16,7 +16,7 @@ import (
 func TestMiddleware(t *testing.T) {
 	t.Run("sets a request ID", func(tt *testing.T) {
 		e := echo.New()
-		e.Use(Middleware())
+		e.Use(Middleware(""))
 
 		e.GET("/", func(c echo.Context) error {
 			log, ok := c.Get("logger").(Logger)
@@ -37,7 +37,7 @@ func TestMiddleware(t *testing.T) {
 
 	t.Run("logs status code", func(tt *testing.T) {
 		e := echo.New()
-		e.Use(Middleware())
+		e.Use(Middleware(""))
 
 		e.GET("/", func(c echo.Context) error {
 			return errors.New("test")
@@ -56,7 +56,7 @@ func TestMiddleware(t *testing.T) {
 	t.Run("pulls the IP from X-Forwarded-For", func(tt *testing.T) {
 		e := echo.New()
 		out := capturer.CaptureStdout(func() {
-			e.Use(Middleware())
+			e.Use(Middleware(""))
 
 			e.GET("/", func(c echo.Context) error {
 				return nil
@@ -83,7 +83,7 @@ func TestMiddleware(t *testing.T) {
 	t.Run("ignores errors according to IsIgnorableError", func(tt *testing.T) {
 		e := echo.New()
 		out := capturer.CaptureStdout(func() {
-			e.Use(MiddlewareWithConfig(MiddlewareConfig{
+			e.Use(MiddlewareWithConfig("", MiddlewareConfig{
 				IsIgnorableError: func(err error) bool {
 					return true
 				},
@@ -113,7 +113,7 @@ func TestMiddleware(t *testing.T) {
 
 func TestFromEchoContext(t *testing.T) {
 	t.Run("retrieves a logger if it has been set previously", func(tt *testing.T) {
-		log := New().ID("test")
+		log := New("").ID("test")
 
 		e := echo.New()
 		req := httptest.NewRequest(echo.GET, "/", nil)
