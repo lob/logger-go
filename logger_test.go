@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -202,10 +201,12 @@ func TestLoggerFields(t *testing.T) {
 		expectedLog := map[string]string{
 			"host":        expectedHostname,
 			"level":       "info",
+			"status":      "info",
 			"message":     "log msg1",
 			"nanoseconds": "",
 			"release":     "mycoolrelease",
 			"service":     "asdf",
+			"name":        "asdf",
 			"id":          "myID",
 		}
 
@@ -222,6 +223,6 @@ func TestLoggerFields(t *testing.T) {
 		// then delete it from the map to test the rest a lot easier
 		delete(res, "timestamp")
 		// and finally test the map is what we expected
-		assert.True(t, reflect.DeepEqual(expectedLog, res))
+		assert.Equal(t, expectedLog, res)
 	})
 }
