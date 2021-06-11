@@ -29,24 +29,36 @@ type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
 
+type Option func(*zerolog.Context)
+
 func init() {
 	zerolog.TimestampFieldName = "timestamp"
 }
 
+func WithField(key, value string) Option {
+	return func(c *zerolog.Context) {
+		c.Str(key, value)
+	}
+}
+
 // New prepares and creates a new Logger instance.
-func New() Logger {
-	return NewWithWriter(os.Stdout)
+func New(serviceName string, options ...Option) Logger {
+	return NewWithWriter(serviceName, os.Stdout, options...)
 }
 
 // NewWithWriter prepares and creates a new Logger instance with a specified writer.
-func NewWithWriter(w io.Writer) Logger {
+func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	host, _ := os.Hostname()
-	release := os.Getenv("RELEASE")
+	if serviceName == "" {
+		serviceName = os.Getenv("SERVICE_NAME")
+	}
 
-	zl := zerolog.New(w).With().Timestamp().Str("host", host)
+	zl := zerolog.New(w).With().Timestamp()
+	zl = zl.Str("host", host).Str("release", os.Getenv("RELEASE"))
+	zl = zl.Str("service", serviceName).Str("name", serviceName)
 
-	if release != "" {
-		zl = zl.Str("release", release)
+	for _, o := range options {
+		o(&zl)
 	}
 
 	return Logger{
@@ -98,31 +110,41 @@ func (log Logger) Root(root Data) Logger {
 // Info outputs an info-level log with a message and any additional data
 // provided.
 func (log Logger) Info(message string, fields ...Data) {
-	log.log(log.zl.Info(), message, fields...)
+	e := log.zl.Info()
+	e.Fields(Data{"status": zerolog.LevelInfoValue})
+	log.log(e, message, fields...)
 }
 
 // Error outputs an error-level log with a message and any additional data
 // provided.
 func (log Logger) Error(message string, fields ...Data) {
-	log.log(log.zl.Error(), message, fields...)
+	e := log.zl.Error()
+	e.Fields(Data{"status": zerolog.LevelErrorValue})
+	log.log(e, message, fields...)
 }
 
 // Warn outputs a warn-level log with a message and any additional data
 // provided.
 func (log Logger) Warn(message string, fields ...Data) {
-	log.log(log.zl.Warn(), message, fields...)
+	e := log.zl.Warn()
+	e.Fields(Data{"status": zerolog.LevelWarnValue})
+	log.log(e, message, fields...)
 }
 
 // Debug outputs a debug-level log with a message and any additional data
 // provided.
 func (log Logger) Debug(message string, fields ...Data) {
-	log.log(log.zl.Debug(), message, fields...)
+	e := log.zl.Debug()
+	e.Fields(Data{"status": zerolog.LevelDebugValue})
+	log.log(e, message, fields...)
 }
 
 // Fatal outputs a fatal-level log with a message and any additional data
 // provided. This will also call os.Exit(1)
 func (log Logger) Fatal(message string, fields ...Data) {
-	log.log(log.zl.Fatal(), message, fields...)
+	e := log.zl.Fatal()
+	e.Fields(Data{"status": zerolog.LevelFatalValue})
+	log.log(e, message, fields...)
 }
 
 func (log Logger) log(evt *zerolog.Event, message string, fields ...Data) {

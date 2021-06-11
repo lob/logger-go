@@ -7,7 +7,7 @@ import (
 
 func TestWithContext(t *testing.T) {
 	id := "1234"
-	log := New().ID(id)
+	log := New("").ID(id)
 
 	ctx := log.WithContext(context.Background())
 
@@ -22,7 +22,7 @@ func TestWithContext(t *testing.T) {
 
 func TestFromContext(t *testing.T) {
 	id := "4321"
-	log := New().ID(id)
+	log := New("").ID(id)
 
 	ctx := log.WithContext(context.Background())
 

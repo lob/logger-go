@@ -1,7 +1,7 @@
 package logger
 
 // defaultLogger is the global logger.
-var defaultLogger = New()
+var defaultLogger = New("")
 
 // Info writes a info-level log with a message and any additional data provided.
 func Info(message string, fields ...Data) {

@@ -24,15 +24,15 @@ const echoKey = "logger"
 // Middleware attaches a Logger instance with a request ID onto the context. It
 // also logs every request along with metadata about the request. To customize
 // the middleware, use MiddlewareWithConfig.
-func Middleware() func(next echo.HandlerFunc) echo.HandlerFunc {
-	return MiddlewareWithConfig(defaultMiddlewareConfig)
+func Middleware(serviceName string) func(next echo.HandlerFunc) echo.HandlerFunc {
+	return MiddlewareWithConfig(serviceName, defaultMiddlewareConfig)
 }
 
 // MiddlewareWithConfig attaches a Logger instance with a request ID onto the
 // context. It also logs every request along with metadata about the request.
 // Pass in a MiddlewareConfig to customize the behavior of the middleware.
-func MiddlewareWithConfig(opts MiddlewareConfig) func(next echo.HandlerFunc) echo.HandlerFunc {
-	l := New()
+func MiddlewareWithConfig(serviceName string, opts MiddlewareConfig) func(next echo.HandlerFunc) echo.HandlerFunc {
+	l := New(serviceName)
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -83,5 +83,5 @@ func FromEchoContext(c echo.Context) Logger {
 		return log
 	}
 
-	return New()
+	return New("")
 }

@@ -15,5 +15,5 @@ func FromContext(ctx context.Context) Logger {
 	if log, ok := ctx.Value(key{}).(Logger); ok {
 		return log
 	}
-	return New()
+	return New("")
 }
