@@ -77,11 +77,12 @@ func MiddlewareWithConfig(serviceName string, opts MiddlewareConfig) func(next e
 }
 
 // FromEchoContext returns a Logger from the given echo.Context. If there is no
-// attached logger, then it will return a new Logger instance.
-func FromEchoContext(c echo.Context) Logger {
+// attached logger, then it will return a new Logger instance with the service's
+// name populated in the correct fields.
+func FromEchoContext(c echo.Context, serviceName string) Logger {
 	if log, ok := c.Get(echoKey).(Logger); ok {
 		return log
 	}
 
-	return New("")
+	return New(serviceName)
 }

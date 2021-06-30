@@ -32,7 +32,7 @@ logger.Info("Hello, world!", logger.Data{"fun": "things"})
 Alternatively, you can instantiate your own logger. This is useful if you want to attach additional data or top-level information to your logger, which will force all logs emitted by that logger to include that info.
 
 ```go
-l1 := logger.New().ID("test")
+l1 := logger.New("myservicename").ID("test")
 l2 := l1.Data(logger.Data{"test": "data"})
 
 l1.Info("hi")
@@ -109,7 +109,7 @@ register it with `e.Use()`:
 ```go
 e := echo.New()
 
-e.Use(logger.Middleware())
+e.Use(logger.Middleware("myservicename"))
 ```
 
 There are also some scenarios where you don't wany an error to be logged and
@@ -121,7 +121,7 @@ can use `logger.MiddlewareWithConfig()` and `logger.MiddlewareConfig`.
 ```go
 e := echo.New()
 
-e.Use(logger.MiddlewareWithConfig(logger.MiddlewareConfig{
+e.Use(logger.MiddlewareWithConfig("myservicename", logger.MiddlewareConfig{
 	IsIgnorableError: func(err error) bool {
 		e := errors.Cause(err)
 
@@ -142,7 +142,7 @@ context. To use it, you can pull it out with `logger.FromEchoContext()`:
 
 ```go
 e.GET("/", func(ctx echo.Context) error {
-        log := logger.FromEchoContext(ctx)
+        log := logger.FromEchoContext(ctx, "myservicename")
 
         log.Info("in handler")
 
@@ -165,7 +165,7 @@ To demonstate the difference between these two mechanisms, here is an example:
 
 ```go
 func main() {
-	log := logger.New()
+	log := logger.New("myservicename")
 
 	nativeErr := nativeFunction1()
 	pkgErr := pkgFunction1()
