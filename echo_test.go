@@ -123,7 +123,7 @@ func TestFromEchoContext(t *testing.T) {
 
 		ctx.Set(echoKey, log)
 
-		l := FromEchoContext(ctx)
+		l := FromEchoContext(ctx, "")
 
 		assert.Equal(tt, log.id, l.id)
 	})
@@ -135,7 +135,7 @@ func TestFromEchoContext(t *testing.T) {
 		rr := httptest.NewRecorder()
 		ctx := e.NewContext(req, rr)
 
-		l := FromEchoContext(ctx)
+		l := FromEchoContext(ctx, "")
 
 		assert.Empty(tt, l.id)
 	})
