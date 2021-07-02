@@ -3,8 +3,10 @@ package logger
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -56,6 +58,11 @@ func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	zl := zerolog.New(w).With().Timestamp()
 	zl = zl.Str("host", host).Str("release", os.Getenv("RELEASE"))
 	zl = zl.Str("service", serviceName).Str("name", serviceName)
+
+	// If we are in a container, populate the container_id field
+	if containerId, err := getContainerId(); err == nil {
+		zl = zl.Str("container_id", containerId)
+	}
 
 	for _, o := range options {
 		o(&zl)
@@ -187,4 +194,17 @@ func (log Logger) log(evt *zerolog.Event, message string, fields ...Data) {
 	}
 
 	evt.Int64("nanoseconds", zerolog.TimestampFunc().UnixNano()).Msg(message)
+}
+
+func getContainerId() (string, error) {
+	content, err := ioutil.ReadFile("/proc/1/cpuset")
+	if err != nil {
+		return "", err
+	}
+
+	parts := strings.Split(string(content), "/")
+	id := parts[len(parts)-1]
+	clean_id := strings.TrimSpace(id)
+
+	return clean_id, nil
 }
