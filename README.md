@@ -229,9 +229,6 @@ For more information on how to wrap errors, like [`errors.WithStack()`](https://
 # Install necessary dependencies for development
 make setup
 
-# Ensure dependencies are safe, complete, and reproducible
-make deps
-
 # Run tests and generate test coverage report
 make test
 
