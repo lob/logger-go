@@ -68,7 +68,9 @@ func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	}
 
 	// Add a zerolog field containing our datadog tags in the format "key1:value1,key2:value2,..."
-	zl = zl.Str("ddtags", strings.Join(ddtags[:], ","))
+	if len(ddtags) > 0 {
+		zl = zl.Str("ddtags", strings.Join(ddtags, ","))
+	}
 
 	for _, o := range options {
 		o(&zl)
@@ -206,17 +208,23 @@ func getContainerId() (string, error) {
 	content, err := ioutil.ReadFile("/proc/1/cpuset")
 	if err != nil {
 		return "", err
+	} else if strings.TrimSpace(string(content)) == "/" {
+		return "", fmt.Errorf("process not running in a container")
 	}
 
-	// The format is /namespace/subNamespace/containerId
+	// The format is /namespace/.../containerId
+	// e.g., /docker/containerId, /ecs/taskId/containerId
 	// Split the content of the file
 	parts := strings.Split(string(content), "/")
 
-	// Pull the last element form the split
+	if len(parts) < 3 {
+		// '/proc/1/cpuset` was present but did not have a container ID
+		return "", fmt.Errorf("could not parse container ID from '%s'", content)
+	}
+
+	// Pull the last element from the split
 	id := parts[len(parts)-1]
 
 	// Remove whitespace (probably just newlines)
-	clean_id := strings.TrimSpace(id)
-
-	return clean_id, nil
+	return strings.TrimSpace(id), nil
 }

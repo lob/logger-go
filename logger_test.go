@@ -149,6 +149,8 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 		t.Fatalf("unexpected error closing write pipe: %s", err)
 	}
 
+	containerId, containerIdErr := getContainerId()
+
 	logLine := <-outC
 	if global {
 		if !strings.Contains(logLine, fmt.Sprintf(`"level":"%s"`, infoLevel)) {
@@ -181,7 +183,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 			t.Error("Nanoseconds is missing")
 		} else if !strings.Contains(logLine, `"timestamp":`) {
 			t.Error("Timestamp is missing")
-		} else if !strings.Contains(logLine, `"ddtags":`) {
+		} else if containerIdErr == nil && !strings.Contains(logLine, fmt.Sprintf("\"ddtags\":\"container_id:%s\"", containerId)) {
 			t.Error("Container ID is missing")
 		} else if !strings.Contains(logLine, `"r1":"test"`) || !strings.Contains(logLine, `"r2":"moreTest"`) {
 			t.Error("Root data is incorrect")
@@ -207,8 +209,6 @@ func TestLoggerFields(t *testing.T) {
 		if _, err := os.Stat("/.dockerenv"); err == nil {
 			containerId, _ := getContainerId()
 			ddtags = fmt.Sprintf("container_id:%s", containerId)
-		} else {
-			ddtags = ""
 		}
 
 		expectedLog := map[string]string{
@@ -221,7 +221,10 @@ func TestLoggerFields(t *testing.T) {
 			"service":     "asdf",
 			"name":        "asdf",
 			"id":          "myID",
-			"ddtags":      ddtags,
+		}
+
+		if ddtags != "" {
+			expectedLog["ddtags"] = ddtags
 		}
 
 		tw := NewTestWriter()
