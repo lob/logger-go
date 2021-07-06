@@ -59,10 +59,16 @@ func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	zl = zl.Str("host", host).Str("release", os.Getenv("RELEASE"))
 	zl = zl.Str("service", serviceName).Str("name", serviceName)
 
-	// If we are in a container, populate the container_id field
+	// List of DataDog Metadata tags
+	var ddtags []string
+
+	// If we are in a container, populate ddtags with the containerId
 	if containerId, err := getContainerId(); err == nil {
-		zl = zl.Str("container_id", containerId)
+		ddtags = append(ddtags, fmt.Sprintf("container_id:%s", containerId))
 	}
+
+	// Add a zerolog field containing our datadog tags in the format "key1:value1,key2:value2,..."
+	zl = zl.Str("ddtags", strings.Join(ddtags[:], ","))
 
 	for _, o := range options {
 		o(&zl)
@@ -202,8 +208,14 @@ func getContainerId() (string, error) {
 		return "", err
 	}
 
+	// The format is /namespace/subNamespace/containerId
+	// Split the content of the file
 	parts := strings.Split(string(content), "/")
+
+	// Pull the last element form the split
 	id := parts[len(parts)-1]
+
+	// Remove whitespace (probably just newlines)
 	clean_id := strings.TrimSpace(id)
 
 	return clean_id, nil

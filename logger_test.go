@@ -181,7 +181,7 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 			t.Error("Nanoseconds is missing")
 		} else if !strings.Contains(logLine, `"timestamp":`) {
 			t.Error("Timestamp is missing")
-		} else if !strings.Contains(logLine, `"container_id":`) {
+		} else if !strings.Contains(logLine, `"ddtags":`) {
 			t.Error("Container ID is missing")
 		} else if !strings.Contains(logLine, `"r1":"test"`) || !strings.Contains(logLine, `"r2":"moreTest"`) {
 			t.Error("Root data is incorrect")
@@ -202,17 +202,26 @@ func TestLoggerFields(t *testing.T) {
 	t.Run("test that fields are populated correctly", func(t *testing.T) {
 		expectedHostname, _ := os.Hostname()
 		os.Setenv("RELEASE", "mycoolrelease")
+
+		var ddtags string
+		if _, err := os.Stat("/.dockerenv"); err == nil {
+			containerId, _ := getContainerId()
+			ddtags = fmt.Sprintf("container_id:%s", containerId)
+		} else {
+			ddtags = ""
+		}
+
 		expectedLog := map[string]string{
-			"host":         expectedHostname,
-			"level":        "info",
-			"status":       "info",
-			"message":      "log msg1",
-			"nanoseconds":  "",
-			"release":      "mycoolrelease",
-			"service":      "asdf",
-			"name":         "asdf",
-			"id":           "myID",
-			"container_id": "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz01",
+			"host":        expectedHostname,
+			"level":       "info",
+			"status":      "info",
+			"message":     "log msg1",
+			"nanoseconds": "",
+			"release":     "mycoolrelease",
+			"service":     "asdf",
+			"name":        "asdf",
+			"id":          "myID",
+			"ddtags":      ddtags,
 		}
 
 		tw := NewTestWriter()
