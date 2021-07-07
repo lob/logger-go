@@ -27,6 +27,9 @@ type Data map[string]interface{}
 
 const stackSize = 4 << 10 // 4KB
 
+// Container ID included in `ddtags`
+var containerId string
+
 type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
@@ -35,6 +38,8 @@ type Option func(*zerolog.Context)
 
 func init() {
 	zerolog.TimestampFieldName = "timestamp"
+
+	containerId, _ = getContainerId()
 }
 
 func WithField(key, value string) Option {
@@ -63,7 +68,7 @@ func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	var ddtags []string
 
 	// If we are in a container, populate ddtags with the containerId
-	if containerId, err := getContainerId(); err == nil {
+	if containerId != "" {
 		ddtags = append(ddtags, fmt.Sprintf("container_id:%s", containerId))
 	}
 
