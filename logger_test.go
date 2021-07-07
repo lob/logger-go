@@ -149,6 +149,8 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 		t.Fatalf("unexpected error closing write pipe: %s", err)
 	}
 
+	containerId, containerIdErr := getContainerId()
+
 	logLine := <-outC
 	if global {
 		if !strings.Contains(logLine, fmt.Sprintf(`"level":"%s"`, infoLevel)) {
@@ -173,12 +175,16 @@ func testLogger(t *testing.T, infoLevel string, infoMsg string, global bool) {
 			t.Error("Log level is incorrect")
 		} else if !strings.Contains(logLine, `"host":`) {
 			t.Error("Host is missing")
+		} else if !strings.Contains(logLine, `"service":`) {
+			t.Error("Service is missing")
 		} else if !strings.Contains(logLine, `"release":`) {
 			t.Error("Release is missing")
 		} else if !strings.Contains(logLine, `"nanoseconds":`) {
 			t.Error("Nanoseconds is missing")
 		} else if !strings.Contains(logLine, `"timestamp":`) {
 			t.Error("Timestamp is missing")
+		} else if containerIdErr == nil && !strings.Contains(logLine, fmt.Sprintf("\"ddtags\":\"container_id:%s\"", containerId)) {
+			t.Error("Container ID is missing")
 		} else if !strings.Contains(logLine, `"r1":"test"`) || !strings.Contains(logLine, `"r2":"moreTest"`) {
 			t.Error("Root data is incorrect")
 		} else if !strings.Contains(logLine, `"data":{"data":"test","1":"1","2":2,"3":[3,4,5],"4":{"5":6.5}}`) {
@@ -198,6 +204,13 @@ func TestLoggerFields(t *testing.T) {
 	t.Run("test that fields are populated correctly", func(t *testing.T) {
 		expectedHostname, _ := os.Hostname()
 		os.Setenv("RELEASE", "mycoolrelease")
+
+		var ddtags string
+		if _, err := os.Stat("/.dockerenv"); err == nil {
+			containerId, _ := getContainerId()
+			ddtags = fmt.Sprintf("container_id:%s", containerId)
+		}
+
 		expectedLog := map[string]string{
 			"host":        expectedHostname,
 			"level":       "info",
@@ -208,6 +221,10 @@ func TestLoggerFields(t *testing.T) {
 			"service":     "asdf",
 			"name":        "asdf",
 			"id":          "myID",
+		}
+
+		if ddtags != "" {
+			expectedLog["ddtags"] = ddtags
 		}
 
 		tw := NewTestWriter()

@@ -3,8 +3,10 @@ package logger
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -25,6 +27,9 @@ type Data map[string]interface{}
 
 const stackSize = 4 << 10 // 4KB
 
+// Container ID included in `ddtags`
+var containerId string
+
 type stackTracer interface {
 	StackTrace() errors.StackTrace
 }
@@ -33,6 +38,8 @@ type Option func(*zerolog.Context)
 
 func init() {
 	zerolog.TimestampFieldName = "timestamp"
+
+	containerId, _ = getContainerId()
 }
 
 func WithField(key, value string) Option {
@@ -56,6 +63,19 @@ func NewWithWriter(serviceName string, w io.Writer, options ...Option) Logger {
 	zl := zerolog.New(w).With().Timestamp()
 	zl = zl.Str("host", host).Str("release", os.Getenv("RELEASE"))
 	zl = zl.Str("service", serviceName).Str("name", serviceName)
+
+	// List of DataDog Metadata tags
+	var ddtags []string
+
+	// If we are in a container, populate ddtags with the containerId
+	if containerId != "" {
+		ddtags = append(ddtags, fmt.Sprintf("container_id:%s", containerId))
+	}
+
+	// Add a zerolog field containing our datadog tags in the format "key1:value1,key2:value2,..."
+	if len(ddtags) > 0 {
+		zl = zl.Str("ddtags", strings.Join(ddtags, ","))
+	}
 
 	for _, o := range options {
 		o(&zl)
@@ -187,4 +207,29 @@ func (log Logger) log(evt *zerolog.Event, message string, fields ...Data) {
 	}
 
 	evt.Int64("nanoseconds", zerolog.TimestampFunc().UnixNano()).Msg(message)
+}
+
+func getContainerId() (string, error) {
+	content, err := ioutil.ReadFile("/proc/1/cpuset")
+	if err != nil {
+		return "", err
+	} else if strings.TrimSpace(string(content)) == "/" {
+		return "", fmt.Errorf("process not running in a container")
+	}
+
+	// The format is /namespace/.../containerId
+	// e.g., /docker/containerId, /ecs/taskId/containerId
+	// Split the content of the file
+	parts := strings.Split(string(content), "/")
+
+	if len(parts) < 3 {
+		// '/proc/1/cpuset` was present but did not have a container ID
+		return "", fmt.Errorf("could not parse container ID from '%s'", content)
+	}
+
+	// Pull the last element from the split
+	id := parts[len(parts)-1]
+
+	// Remove whitespace (probably just newlines)
+	return strings.TrimSpace(id), nil
 }
