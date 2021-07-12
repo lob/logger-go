@@ -1,0 +1,48 @@
+name: logger-go CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  ci:
+    name: Build & Test
+
+    strategy:
+      matrix:
+        go-version: ['1.13.8']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Use golang ${{ matrix.go-version }}
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      # TODO: Caching
+
+      - name: Install workspace dependencies
+        run: |
+          make setup
+          make install
+
+      - name: Run linter
+        run: make lint
+
+      - name: Run tests
+        run: make test
+
+      - name: Enforce coverage
+        run: make enforce
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report-go${{ matrix.go-version }}
+          path: coverage.out
