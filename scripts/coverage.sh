@@ -1,6 +1,6 @@
 #!/bin/bash
 
-THRESHOLD=90
+THRESHOLD=88
 COVERAGE_PROFILE=$1
 
 if [ -z "$COVERAGE_PROFILE" ]; then
