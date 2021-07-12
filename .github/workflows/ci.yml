@@ -11,6 +11,7 @@ on:
 jobs:
   ci:
     name: Build & Test
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -27,7 +28,7 @@ jobs:
 
       # TODO: Caching
 
-      - name: Install workspace dependencies
+      - name: Install dependencies
         run: |
           make setup
           make install
@@ -46,3 +47,4 @@ jobs:
         with:
           name: code-coverage-report-go${{ matrix.go-version }}
           path: coverage.out
+        # TODO: if: ${{ failure() }}
